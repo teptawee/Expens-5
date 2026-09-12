@@ -1,6 +1,6 @@
 /**
  * ============================================
- * App.js — Logic กลาง
+ * App.js — Logic กลาง (Safe Version)
  * ============================================
  */
 
@@ -26,17 +26,11 @@ async function callAPI(action, data = null, method = 'GET') {
     };
   }
 
-  console.log('🔵 API Call:', url, opts);
+  console.log('🔵 API Call:', action, opts.method);
   const res = await fetch(url, opts);
   const json = await res.json();
   console.log('🟢 API Response:', json);
-  
-  if (!json.ok) throw new Error(json.error || 'API Error');
-  return json.data;
-}
 
-  const res = await fetch(url, opts);
-  const json = await res.json();
   if (!json.ok) throw new Error(json.error || 'API Error');
   return json.data;
 }
@@ -46,11 +40,10 @@ async function loadDashboard() {
   try {
     const d = await callAPI('getDashboard');
 
-    // ✅ SAFE: ตรวจสอบ
-    if (!d || typeof d !== 'object') throw new Error('Dashboard data ไม่ถูกต้อง');
+    if (!d || typeof d !== 'object') throw new Error('ข้อมูล Dashboard ไม่ถูกต้อง');
 
-    const summary = d.summary || { today:0, week:0, month:0, year:0 };
-    const monthBudgetInfo = d.monthBudgetInfo || { totalBudget:0, spent:0, remain:0 };
+    const summary = d.summary || { today: 0, week: 0, month: 0, year: 0 };
+    const monthBudgetInfo = d.monthBudgetInfo || { totalBudget: 0, spent: 0, remain: 0 };
 
     document.getElementById('sumToday').textContent = '฿' + fmt(summary.today);
     document.getElementById('sumWeek').textContent = '฿' + fmt(summary.week);
@@ -64,6 +57,7 @@ async function loadDashboard() {
     const usedPercent = b.totalBudget > 0 ? (b.spent / b.totalBudget) * 100 : 0;
     document.getElementById('budgetBar').style.width = Math.min(100, usedPercent) + '%';
 
+    // ✅ SAFE: fallback เป็น array ว่างเสมอ
     renderCategoryChart(Array.isArray(d.byCategory) ? d.byCategory : []);
     renderPaymentChart(Array.isArray(d.byPayment) ? d.byPayment : []);
     renderDailyChart(Array.isArray(d.dailyCompare) ? d.dailyCompare : []);
@@ -90,13 +84,14 @@ const chartDefaults = {
 function renderCategoryChart(data) {
   const ctx = document.getElementById('chartCategory');
   if (!ctx) return;
-  const filtered = data.filter(d => d.spent > 0);
+  const filtered = data.filter(d => Number(d.spent) > 0);
+  if (!filtered.length) return;
   new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: filtered.map(d => `${d.icon} ${d.name}`),
+      labels: filtered.map(d => `${d.icon || ''} ${d.name || ''}`),
       datasets: [{
-        data: filtered.map(d => d.spent),
+        data: filtered.map(d => Number(d.spent) || 0),
         backgroundColor: CHART_COLORS,
         borderWidth: 3,
         borderColor: '#ffffff'
@@ -109,13 +104,14 @@ function renderCategoryChart(data) {
 function renderPaymentChart(data) {
   const ctx = document.getElementById('chartPayment');
   if (!ctx) return;
-  const filtered = data.filter(d => d.total > 0);
+  const filtered = data.filter(d => Number(d.total) > 0);
+  if (!filtered.length) return;
   new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: filtered.map(d => `${d.icon} ${d.name}`),
+      labels: filtered.map(d => `${d.icon || ''} ${d.name || ''}`),
       datasets: [{
-        data: filtered.map(d => d.total),
+        data: filtered.map(d => Number(d.total) || 0),
         backgroundColor: ['#f8bbd0','#a5d6a7','#90caf9','#ffe082'],
         borderWidth: 3,
         borderColor: '#ffffff'
@@ -127,14 +123,14 @@ function renderPaymentChart(data) {
 
 function renderDailyChart(data) {
   const ctx = document.getElementById('chartDaily');
-  if (!ctx) return;
+  if (!ctx || !data.length) return;
   new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: data.map(d => d.label),
+      labels: data.map(d => d.label || ''),
       datasets: [{
         label: 'ค่าใช้จ่าย (บาท)',
-        data: data.map(d => d.amount),
+        data: data.map(d => Number(d.amount) || 0),
         backgroundColor: 'rgba(206,147,216,0.75)',
         borderRadius: 10
       }]
@@ -145,14 +141,14 @@ function renderDailyChart(data) {
 
 function renderWeeklyChart(data) {
   const ctx = document.getElementById('chartWeekly');
-  if (!ctx) return;
+  if (!ctx || !data.length) return;
   new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: data.map(d => d.label),
+      labels: data.map(d => d.label || ''),
       datasets: [{
         label: 'บาท',
-        data: data.map(d => d.amount),
+        data: data.map(d => Number(d.amount) || 0),
         backgroundColor: 'rgba(144,202,249,0.75)',
         borderRadius: 10
       }]
@@ -163,22 +159,22 @@ function renderWeeklyChart(data) {
 
 function renderMonthlyChart(data) {
   const ctx = document.getElementById('chartMonthly');
-  if (!ctx) return;
+  if (!ctx || !data.length) return;
   new Chart(ctx, {
     type: 'line',
     data: {
-      labels: data.map(d => d.label),
+      labels: data.map(d => d.label || ''),
       datasets: [
         {
           label: 'ใช้ไป',
-          data: data.map(d => d.spent),
+          data: data.map(d => Number(d.spent) || 0),
           borderColor: '#ce93d8',
           backgroundColor: 'rgba(206,147,216,0.25)',
           fill: true, tension: 0.35
         },
         {
           label: 'งบตั้งไว้',
-          data: data.map(d => d.budget),
+          data: data.map(d => Number(d.budget) || 0),
           borderColor: '#a5d6a7',
           backgroundColor: 'rgba(165,214,167,0.15)',
           borderDash: [6, 4],
@@ -192,23 +188,29 @@ function renderMonthlyChart(data) {
 
 function renderCategoryProgress(cats) {
   const el = document.getElementById('categoryProgress');
+  if (!el) return;
+  if (!cats.length) {
+    el.innerHTML = '<p style="text-align:center;color:#7e7e94;padding:16px">ยังไม่มีข้อมูล</p>';
+    return;
+  }
   el.innerHTML = cats.map(c => `
     <div class="cat-row">
-      <div class="cat-icon">${c.icon}</div>
+      <div class="cat-icon">${c.icon || '📌'}</div>
       <div class="cat-info">
-        <div class="name">${c.name}</div>
+        <div class="name">${c.name || '-'}</div>
         <div class="meta">ใช้ไป ฿${fmt(c.spent)} / งบ ฿${fmt(c.budget)} · เหลือ ฿${fmt(c.remain)}</div>
         <div class="cat-bar-track">
-          <div class="cat-bar-fill" style="width:${c.percent}%;background:${c.color}"></div>
+          <div class="cat-bar-fill" style="width:${Number(c.percent) || 0}%;background:${c.color || '#bdbdbd'}"></div>
         </div>
       </div>
-      <div class="cat-percent" style="color:${c.color}">${c.percent}%</div>
+      <div class="cat-percent" style="color:${c.color || '#bdbdbd'}">${Number(c.percent) || 0}%</div>
     </div>
   `).join('');
 }
 
 function renderRecent(list) {
   const el = document.getElementById('recentList');
+  if (!el) return;
   if (!list.length) {
     el.innerHTML = '<p style="text-align:center;color:#7e7e94;padding:16px">ยังไม่มีรายการ</p>';
     return;
@@ -219,7 +221,7 @@ function renderRecent(list) {
         <div class="recent-icon">${t.categoryIcon || '📌'}</div>
         <div class="recent-info">
           <div class="cat-name">${t.categoryName || '-'}</div>
-          <div class="sub">${t.date} ${t.time || ''} · ${t.payIcon || ''} ${t.payName || ''} ${t.note ? '· ' + t.note : ''}</div>
+          <div class="sub">${t.date || ''} ${t.time || ''} · ${t.payIcon || ''} ${t.payName || ''} ${t.note ? '· ' + t.note : ''}</div>
         </div>
       </div>
       <div class="recent-amount">-฿${fmt(t.amount)}</div>
@@ -236,7 +238,6 @@ async function initAddPage() {
     const catData = await callAPI('getCategories');
     const payData = await callAPI('getPayments');
 
-    // ✅ SAFE
     const cats = (Array.isArray(catData) ? catData : []).filter(c => c.active !== false);
     const pays = (Array.isArray(payData) ? payData : []).filter(p => p.active !== false);
 
@@ -246,7 +247,7 @@ async function initAddPage() {
             <span class="emoji">${c.icon}</span>${c.name}
           </div>
         `).join('')
-      : '<p style="color:#7e7e94">ไม่พบหมวดหมู่</p>';
+      : '<p style="color:#7e7e94;padding:8px">ไม่พบหมวดหมู่</p>';
 
     document.getElementById('paymentPicker').innerHTML = pays.length
       ? pays.map(p => `
@@ -254,7 +255,7 @@ async function initAddPage() {
             <span class="emoji">${p.icon}</span>${p.name}
           </div>
         `).join('')
-      : '<p style="color:#7e7e94">ไม่พบประเภทชำระ</p>';
+      : '<p style="color:#7e7e94;padding:8px">ไม่พบประเภทชำระ</p>';
 
     document.querySelectorAll('#categoryPicker .icon-option').forEach(el => {
       el.onclick = () => {
@@ -307,36 +308,6 @@ async function initAddPage() {
   }
 }
 
-  document.getElementById('txForm').onsubmit = async (e) => {
-    e.preventDefault();
-    const res = document.getElementById('result');
-    if (!selectedCat) return showResult(res, 'กรุณาเลือกหมวดหมู่', false);
-    if (!selectedPay) return showResult(res, 'กรุณาเลือกประเภทการชำระ', false);
-    const amount = parseFloat(document.getElementById('amount').value);
-    if (!amount || amount <= 0) return showResult(res, 'กรุณากรอกจำนวนเงิน', false);
-
-    try {
-      await callAPI('addTransaction', {
-        categoryId: selectedCat.id,
-        categoryName: selectedCat.name,
-        categoryIcon: selectedCat.icon,
-        payId: selectedPay.id,
-        payName: selectedPay.name,
-        payIcon: selectedPay.icon,
-        amount,
-        note: document.getElementById('note').value
-      }, 'POST');
-
-      showResult(res, '✅ บันทึกสำเร็จ!', true);
-      document.getElementById('amount').value = '';
-      document.getElementById('note').value = '';
-      setTimeout(() => location.href = 'index.html', 1200);
-    } catch (err) {
-      showResult(res, '❌ ' + err.message, false);
-    }
-  };
-}
-
 function showResult(el, msg, ok) {
   el.textContent = msg;
   el.className = 'result-msg ' + (ok ? 'ok' : 'err');
@@ -367,12 +338,12 @@ async function loadSettings() {
               </span>
             </div>
             <div>
-              <button class="btn-mini" onclick="editCat('${c.id}','${c.name}','${c.icon}',${c.budget})">✏️</button>
+              <button class="btn-mini" onclick="editCat('${c.id}','${c.name}','${c.icon}',${Number(c.budget) || 0})">✏️</button>
               <button class="btn-mini danger" onclick="delCat('${c.id}')">🗑️</button>
             </div>
           </div>
         `).join('')
-      : '<p style="color:#7e7e94">ไม่มีหมวดหมู่</p>';
+      : '<p style="color:#7e7e94;padding:8px">ไม่มีหมวดหมู่</p>';
 
     document.getElementById('payList').innerHTML = pays.length
       ? pays.map(p => `
@@ -387,7 +358,7 @@ async function loadSettings() {
             </div>
           </div>
         `).join('')
-      : '<p style="color:#7e7e94">ไม่มีประเภทชำระ</p>';
+      : '<p style="color:#7e7e94;padding:8px">ไม่มีประเภทชำระ</p>';
 
   } catch (err) {
     console.error('Load settings error:', err);
