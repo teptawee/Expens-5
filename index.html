@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💰 Dashboard - บันทึกค่าใช้จ่าย</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<nav class="glass-nav">
+  <div class="nav-brand">💰 Money Tracker</div>
+  <div class="nav-links">
+    <a href="index.html" class="active">📊 Dashboard</a>
+    <a href="add.html">➕ บันทึก</a>
+    <a href="settings.html">⚙️ ตั้งค่า</a>
+  </div>
+</nav>
+
+<main class="container">
+  <h1 class="page-title">📊 ภาพรวมการเงิน</h1>
+
+  <!-- การ์ดสรุป -->
+  <section class="summary-grid">
+    <div class="glass-card stat-card">
+      <div class="stat-icon">☀️</div>
+      <div class="stat-label">วันนี้</div>
+      <div class="stat-value" id="sumToday">-</div>
+    </div>
+    <div class="glass-card stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-label">สัปดาห์นี้</div>
+      <div class="stat-value" id="sumWeek">-</div>
+    </div>
+    <div class="glass-card stat-card">
+      <div class="stat-icon">🗓️</div>
+      <div class="stat-label">เดือนนี้</div>
+      <div class="stat-value" id="sumMonth">-</div>
+    </div>
+    <div class="glass-card stat-card">
+      <div class="stat-icon">📆</div>
+      <div class="stat-label">ปีนี้</div>
+      <div class="stat-value" id="sumYear">-</div>
+    </div>
+  </section>
+
+  <!-- งบประมาณเดือนนี้ -->
+  <section class="glass-card" id="budgetCard">
+    <h2>💼 งบประมาณเดือนนี้</h2>
+    <div class="budget-row">
+      <div>ตั้งไว้: <b id="budgetTotal">-</b></div>
+      <div>ใช้ไป: <b id="budgetSpent" class="text-warn">-</b></div>
+      <div>คงเหลือ: <b id="budgetRemain" class="text-ok">-</b></div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="budgetBar" style="width:0%"></div>
+    </div>
+  </section>
+
+  <!-- กราฟ 2 วงกลม -->
+  <section class="chart-grid">
+    <div class="glass-card">
+      <h2>🍩 ค่าใช้จ่ายตามหมวดหมู่</h2>
+      <canvas id="chartCategory" height="240"></canvas>
+    </div>
+    <div class="glass-card">
+      <h2>💳 ประเภทการชำระเงิน</h2>
+      <canvas id="chartPayment" height="240"></canvas>
+    </div>
+  </section>
+
+  <!-- กราฟเปรียบเทียบ -->
+  <section class="glass-card">
+    <h2>📈 เปรียบเทียบรายวัน (7 วันล่าสุด)</h2>
+    <canvas id="chartDaily" height="120"></canvas>
+  </section>
+
+  <section class="chart-grid">
+    <div class="glass-card">
+      <h2>📊 เปรียบเทียบรายสัปดาห์</h2>
+      <canvas id="chartWeekly" height="200"></canvas>
+    </div>
+    <div class="glass-card">
+      <h2>📉 เปรียบเทียบรายเดือน (6 เดือน)</h2>
+      <canvas id="chartMonthly" height="200"></canvas>
+    </div>
+  </section>
+
+  <!-- เปอร์เซ็นต์คงเหลือแต่ละหมวด -->
+  <section class="glass-card">
+    <h2>🎯 สถานะเงินคงเหลือแต่ละหมวด</h2>
+    <div id="categoryProgress"></div>
+  </section>
+
+  <!-- รายการล่าสุด -->
+  <section class="glass-card">
+    <h2>🕒 รายการล่าสุด</h2>
+    <div id="recentList"></div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+<script>loadDashboard();</script>
+</body>
+</html>
