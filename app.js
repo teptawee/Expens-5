@@ -1,6 +1,6 @@
 /**
  * ============================================
- * App.js — Logic กลาง (Final v3)
+ * App.js — Logic กลาง (Final v4)
  * ============================================
  */
 
@@ -11,6 +11,8 @@ const API_URL = "https://script.google.com/macros/s/AKfycby-oHhsH3-Bt26DlaBWe3eo
 const fmt = n => new Intl.NumberFormat('th-TH', {
   minimumFractionDigits: 2, maximumFractionDigits: 2
 }).format(Number(n) || 0);
+
+const fmtInt = n => new Intl.NumberFormat('th-TH').format(Number(n) || 0);
 
 async function callAPI(action, data = null, method = 'GET') {
   let url = API_URL;
@@ -58,11 +60,23 @@ async function loadDashboard() {
     document.getElementById('sumMonth').textContent = '฿' + fmt(summary.month);
     document.getElementById('sumYear').textContent = '฿' + fmt(summary.year);
 
+    // ✅ Budget — ปรับให้ทนทาน
     const b = monthBudgetInfo;
-    document.getElementById('budgetTotal').textContent = '฿' + fmt(b.totalBudget);
-    document.getElementById('budgetSpent').textContent = '฿' + fmt(b.spent);
-    document.getElementById('budgetRemain').textContent = '฿' + fmt(b.remain);
-    const usedPercent = b.totalBudget > 0 ? (b.spent / b.totalBudget) * 100 : 0;
+    const totalBudget = Number(b.totalBudget) || 0;
+    const spent = Number(b.spent) || 0;
+    const remain = totalBudget - spent;
+
+    document.getElementById('budgetTotal').textContent = '฿' + fmt(totalBudget);
+    document.getElementById('budgetSpent').textContent = '฿' + fmt(spent);
+    document.getElementById('budgetRemain').textContent = '฿' + fmt(remain);
+
+    // ✅ แสดงคำเตือนถ้ายังไม่ตั้งงบ
+    if (totalBudget === 0) {
+      document.getElementById('budgetTotal').innerHTML =
+        '<span style="color:#ff7043;font-size:0.85rem">ยังไม่ตั้งงบ → <a href="settings.html" style="color:#ce93d8;text-decoration:underline">ไปตั้งค่า</a></span>';
+    }
+
+    const usedPercent = totalBudget > 0 ? (spent / totalBudget) * 100 : 0;
     document.getElementById('budgetBar').style.width = Math.min(100, usedPercent) + '%';
 
     destroyAllCharts();
@@ -194,8 +208,7 @@ function renderMonthlyChart(data) {
   });
 }
 
-// ==================== RECENT ====================
-// ==================== RECENT ====================
+// ==================== RECENT (Enhanced) ====================
 function renderRecent(list) {
   const el = document.getElementById('recentList');
   if (!el) return;
@@ -206,9 +219,7 @@ function renderRecent(list) {
   }
 
   el.innerHTML = list.map(t => {
-    // ✅ วันที่แบบสะอาด (dd/mm/yyyy)
     const dateStr = formatDateShort(t.date);
-    // ✅ เวลาแบบ HH:mm
     const timeStr = (t.time && typeof t.time === 'string' && t.time.length === 5) ? t.time : '';
 
     return `
@@ -231,15 +242,12 @@ function renderRecent(list) {
   }).join('');
 }
 
-// ✅ Helper: format วันที่
 function formatDateShort(iso) {
   if (!iso) return '-';
-  // ถ้าเป็น string yyyy-MM-dd แล้ว
   if (typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(iso)) {
     const [y, m, d] = iso.split('-');
     return `${d}/${m}/${y}`;
   }
-  // ถ้าเป็น Date object
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '-';
   const day = String(d.getDate()).padStart(2, '0');
@@ -247,9 +255,10 @@ function formatDateShort(iso) {
   const year = d.getFullYear();
   return `${day}/${month}/${year}`;
 }
+
 /**
  * ============================================
- * Category Progress Cards (v3 — Matching Design)
+ * Category Progress Cards
  * ============================================
  */
 
@@ -265,17 +274,17 @@ const EMOJI_LIST = [
 ];
 
 const CAT_STYLE = {
-  'ค่าอาหาร':        { bg: 'linear-gradient(135deg, #fff3e0, #ffe0b2)' },   // ครีม-ส้มอ่อน
-  'ค่ากาแฟ':         { bg: 'linear-gradient(135deg, #f3e5f5, #e1bee7)' },   // ม่วงอ่อน
-  'ค่าเครื่องดื่ม':   { bg: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' },   // ชมพูอ่อน
-  'ค่าหวย':          { bg: 'linear-gradient(135deg, #fff8e1, #ffecb3)' },   // เหลืองอ่อน
-  'ค่าช้อปปิ้ง':      { bg: 'linear-gradient(135deg, #f3e5f5, #ce93d8)' },   // ม่วงชมพู
-  'ค่ายานพาหนะ':      { bg: 'linear-gradient(135deg, #e3f2fd, #bbdefb)' },   // ฟ้าอ่อน
-  'ค่าน้ำมันรถ':      { bg: 'linear-gradient(135deg, #e0f7fa, #b2ebf2)' },   // ฟ้าเขียวมิ้นต์
-  'ค่ายารักษาโรค':    { bg: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)' },   // เขียวอ่อน
-  'ค่าของใช้ส่วนตัว': { bg: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' },   // ชมพูพีช
-  'ค่าของใช้จำเป็น':  { bg: 'linear-gradient(135deg, #e1f5fe, #b3e5fc)' },   // ฟ้า
-  'ค่าอื่นๆ':         { bg: 'linear-gradient(135deg, #efebe9, #d7ccc8)' }    // น้ำตาลอ่อน
+  'ค่าอาหาร':        { bg: 'linear-gradient(135deg, #fff3e0, #ffe0b2)' },
+  'ค่ากาแฟ':         { bg: 'linear-gradient(135deg, #f3e5f5, #e1bee7)' },
+  'ค่าเครื่องดื่ม':   { bg: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' },
+  'ค่าหวย':          { bg: 'linear-gradient(135deg, #fff8e1, #ffecb3)' },
+  'ค่าช้อปปิ้ง':      { bg: 'linear-gradient(135deg, #f3e5f5, #ce93d8)' },
+  'ค่ายานพาหนะ':      { bg: 'linear-gradient(135deg, #e3f2fd, #bbdefb)' },
+  'ค่าน้ำมันรถ':      { bg: 'linear-gradient(135deg, #e0f7fa, #b2ebf2)' },
+  'ค่ายารักษาโรค':    { bg: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)' },
+  'ค่าของใช้ส่วนตัว': { bg: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' },
+  'ค่าของใช้จำเป็น':  { bg: 'linear-gradient(135deg, #e1f5fe, #b3e5fc)' },
+  'ค่าอื่นๆ':         { bg: 'linear-gradient(135deg, #efebe9, #d7ccc8)' }
 };
 
 function getCatStyle(name) {
@@ -306,17 +315,16 @@ function catCardHTML(c) {
   const style = getCatStyle(c.name);
   const percent = Number(c.percent) || 0;
 
-  // สีตามค่า percent
   let barColor, percentColor;
   if (percent >= 60) {
-    barColor = '#81c784';      // เขียวอ่อน
-    percentColor = '#2e7d32';  // เขียวเข้ม
+    barColor = '#81c784';
+    percentColor = '#2e7d32';
   } else if (percent >= 40) {
-    barColor = '#ffd54f';      // เหลืองอ่อน
-    percentColor = '#e65100';  // ส้ม
+    barColor = '#ffd54f';
+    percentColor = '#e65100';
   } else {
-    barColor = '#ffb74d';      // ส้มอ่อน
-    percentColor = '#e65100';  // ส้มเข้ม
+    barColor = '#ffb74d';
+    percentColor = '#e65100';
   }
 
   return `
@@ -651,8 +659,32 @@ function showResult(el, msg, ok) {
 // ==================== SETTINGS PAGE ====================
 async function initSettingsPage() {
   await loadSettings();
-  document.getElementById('budgetMonth').value =
-    new Date().toISOString().slice(0, 7);
+
+  // ✅ ตั้งค่า input เป็นเดือนปัจจุบัน
+  const now = new Date();
+  const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  document.getElementById('budgetMonth').value = ym;
+
+  // ✅ โหลดงบของเดือนปัจจุบันมาแสดง
+  try {
+    const budgets = await callAPI('getBudgets');
+    const current = (Array.isArray(budgets) ? budgets : [])
+      .find(b => String(b.yearMonth) === ym);
+
+    if (current) {
+      document.getElementById('budgetAmount').value = current.totalBudget;
+    } else {
+      // ถ้าไม่มีของเดือนนี้ → ลองหาของเดือนล่าสุด
+      const sorted = (Array.isArray(budgets) ? budgets : [])
+        .slice()
+        .sort((a, b) => String(b.yearMonth).localeCompare(String(a.yearMonth)));
+      if (sorted.length > 0) {
+        document.getElementById('budgetAmount').value = sorted[0].totalBudget;
+      }
+    }
+  } catch (err) {
+    console.error('Load budget error:', err);
+  }
 }
 
 async function loadSettings() {
@@ -750,10 +782,33 @@ async function delPay(id) {
   loadSettings();
 }
 
+// ========== SAVE BUDGET (Enhanced) ==========
 async function saveBudget() {
   const ym = document.getElementById('budgetMonth').value;
   const total = parseFloat(document.getElementById('budgetAmount').value);
-  if (!ym || !total) return alert('กรอกข้อมูลให้ครบ');
-  await callAPI('setMonthlyBudget', { yearMonth: ym, totalBudget: total }, 'POST');
-  alert('บันทึกงบประมาณแล้ว!');
+
+  console.log('💾 Saving budget:', { ym, total });
+
+  if (!ym || !total || total <= 0) {
+    alert('กรุณากรอกข้อมูลให้ครบ (เดือน + จำนวนเงิน)');
+    return;
+  }
+
+  try {
+    const result = await callAPI('setMonthlyBudget', {
+      yearMonth: ym,
+      totalBudget: total,
+      note: 'งบประมาณเดือน ' + ym
+    }, 'POST');
+
+    console.log('✅ Save result:', result);
+    alert('บันทึกงบประมาณ ฿' + fmtInt(total) + ' สำหรับเดือน ' + ym + ' แล้ว!');
+
+    // ✅ รีเฟรชค่าในหน้า Settings
+    await initSettingsPage();
+
+  } catch (err) {
+    console.error('❌ Save error:', err);
+    alert('บันทึกไม่ได้: ' + err.message);
+  }
 }
