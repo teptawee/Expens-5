@@ -1340,3 +1340,128 @@ body {
   .modal-footer { padding: 12px 18px 18px; }
   .btn-cancel, .btn-save { padding: 12px 14px; font-size: 0.9rem; }
 }
+
+/* ============================================
+   RECENT ITEMS (Enhanced)
+   ============================================ */
+
+.recent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 6px;
+  border-bottom: 1px dashed rgba(180, 180, 200, 0.3);
+  transition: all 0.2s;
+}
+
+.recent-item:last-child {
+  border-bottom: none;
+}
+
+.recent-item:hover {
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.recent-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.recent-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #f3e5f5, #e8eaf6);
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 10px rgba(180, 160, 200, 0.18);
+  flex-shrink: 0;
+}
+
+.recent-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.recent-info .cat-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #4a3a6a;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-info .sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #7e6e94;
+  font-weight: 500;
+}
+
+.recent-info .sub > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.recent-date {
+  color: #6a5acd;
+  font-weight: 600;
+}
+
+.recent-time {
+  color: #7e6e94;
+}
+
+.recent-pay {
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: rgba(248, 187, 208, 0.5);
+  color: #c2185b;
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+
+.recent-note {
+  color: #8e8ea4;
+  font-style: italic;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-amount {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #c2185b;
+  flex-shrink: 0;
+  margin-left: 12px;
+  letter-spacing: -0.3px;
+}
+
+@media (max-width: 640px) {
+  .recent-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
+  .recent-info .cat-name { font-size: 0.88rem; }
+  .recent-info .sub { font-size: 0.72rem; gap: 6px; }
+  .recent-note { display: none; }
+  .recent-amount { font-size: 1rem; }
+}
