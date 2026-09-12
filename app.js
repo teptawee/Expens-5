@@ -195,27 +195,58 @@ function renderMonthlyChart(data) {
 }
 
 // ==================== RECENT ====================
+// ==================== RECENT ====================
 function renderRecent(list) {
   const el = document.getElementById('recentList');
   if (!el) return;
+
   if (!list.length) {
     el.innerHTML = '<p style="text-align:center;color:#7e7e94;padding:16px">ยังไม่มีรายการ</p>';
     return;
   }
-  el.innerHTML = list.map(t => `
-    <div class="recent-item">
-      <div class="recent-left">
-        <div class="recent-icon">${t.categoryIcon || '📌'}</div>
-        <div class="recent-info">
-          <div class="cat-name">${t.categoryName || '-'}</div>
-          <div class="sub">${t.date || ''} ${t.time || ''} · ${t.payIcon || ''} ${t.payName || ''} ${t.note ? '· ' + t.note : ''}</div>
+
+  el.innerHTML = list.map(t => {
+    // ✅ วันที่แบบสะอาด (dd/mm/yyyy)
+    const dateStr = formatDateShort(t.date);
+    // ✅ เวลาแบบ HH:mm
+    const timeStr = (t.time && typeof t.time === 'string' && t.time.length === 5) ? t.time : '';
+
+    return `
+      <div class="recent-item">
+        <div class="recent-left">
+          <div class="recent-icon">${t.categoryIcon || '📌'}</div>
+          <div class="recent-info">
+            <div class="cat-name">${t.categoryName || '-'}</div>
+            <div class="sub">
+              <span class="recent-date">📅 ${dateStr}</span>
+              ${timeStr ? `<span class="recent-time">⏰ ${timeStr}</span>` : ''}
+              <span class="recent-pay">${t.payIcon || '💳'} ${t.payName || ''}</span>
+              ${t.note ? `<span class="recent-note">📝 ${t.note}</span>` : ''}
+            </div>
+          </div>
         </div>
+        <div class="recent-amount">-฿${fmt(t.amount)}</div>
       </div>
-      <div class="recent-amount">-฿${fmt(t.amount)}</div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
+// ✅ Helper: format วันที่
+function formatDateShort(iso) {
+  if (!iso) return '-';
+  // ถ้าเป็น string yyyy-MM-dd แล้ว
+  if (typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+  // ถ้าเป็น Date object
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '-';
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
 /**
  * ============================================
  * Category Progress Cards (v3 — Matching Design)
