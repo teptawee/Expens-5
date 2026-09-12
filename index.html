@@ -9,6 +9,7 @@
 </head>
 <body>
 
+<!-- ===== Navigation ===== -->
 <nav class="glass-nav">
   <div class="nav-brand">💰 Money Tracker</div>
   <div class="nav-links">
@@ -59,7 +60,7 @@
     </div>
   </section>
 
-  <!-- ===== Chart 2 วง ===== -->
+  <!-- ===== Chart: Category + Payment ===== -->
   <section class="chart-grid">
     <div class="glass-card">
       <h2>🍩 ค่าใช้จ่ายตามหมวดหมู่</h2>
@@ -100,14 +101,16 @@
     <div id="categoryProgress" class="cat-grid"></div>
   </section>
 
-  <!-- ===== Recent ===== -->
+  <!-- ===== Recent Transactions ===== -->
   <section class="glass-card">
     <h2>🕒 รายการล่าสุด</h2>
     <div id="recentList"></div>
   </section>
 </main>
 
-<!-- ===== Category Edit/Add Modal ===== -->
+<!-- ============================================
+     MODAL: เพิ่ม / แก้ไข หมวดหมู่
+     ============================================ -->
 <div id="categoryModal" class="modal-backdrop hidden">
   <div class="modal-card">
     <div class="modal-header">
@@ -116,7 +119,7 @@
         <h2 id="catModalTitle">แก้ไขหมวดหมู่</h2>
         <p>ปรับชื่อ ไอคอน และวงเงิน</p>
       </div>
-      <button class="modal-close" onclick="closeCategoryModal()">✕</button>
+      <button class="modal-close" onclick="closeCategoryModal()" aria-label="ปิด">✕</button>
     </div>
 
     <div class="modal-body">
@@ -153,7 +156,9 @@
   </div>
 </div>
 
-<!-- ===== Confirm Delete Modal ===== -->
+<!-- ============================================
+     MODAL: ยืนยันการลบ
+     ============================================ -->
 <div id="confirmModal" class="modal-backdrop hidden">
   <div class="modal-card confirm-card">
     <div class="confirm-icon-wrap">
@@ -172,7 +177,9 @@
   </div>
 </div>
 
-<!-- ===== Category Transactions Modal ===== -->
+<!-- ============================================
+     MODAL: รายการในหมวด
+     ============================================ -->
 <div id="catTxModal" class="modal-backdrop hidden">
   <div class="modal-card">
     <div class="modal-header">
@@ -181,7 +188,7 @@
         <h2 id="catTxTitle">รายการในหมวด</h2>
         <p id="catTxSubtitle">-</p>
       </div>
-      <button class="modal-close" onclick="closeCatTxModal()">✕</button>
+      <button class="modal-close" onclick="closeCatTxModal()" aria-label="ปิด">✕</button>
     </div>
 
     <div class="modal-body">
