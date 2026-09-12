@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>➕ บันทึกรายการ</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="glass-nav">
+  <div class="nav-brand">💰 Money Tracker</div>
+  <div class="nav-links">
+    <a href="index.html">📊 Dashboard</a>
+    <a href="add.html" class="active">➕ บันทึก</a>
+    <a href="settings.html">⚙️ ตั้งค่า</a>
+  </div>
+</nav>
+
+<main class="container narrow">
+  <h1 class="page-title">➕ บันทึกค่าใช้จ่าย</h1>
+
+  <form id="txForm" class="glass-card form-card">
+    <label>หมวดหมู่</label>
+    <div id="categoryPicker" class="icon-picker"></div>
+
+    <label>ประเภทการชำระ</label>
+    <div id="paymentPicker" class="icon-picker"></div>
+
+    <label>จำนวนเงิน (บาท)</label>
+    <input type="number" id="amount" step="0.01" min="0" required placeholder="0.00">
+
+    <label>หมายเหตุ (ไม่บังคับ)</label>
+    <input type="text" id="note" placeholder="เช่น กาแฟลาเต้">
+
+    <button type="submit" class="btn-primary">💾 บันทึกรายการ</button>
+  </form>
+
+  <div id="result" class="result-msg"></div>
+</main>
+
+<script src="app.js"></script>
+<script>initAddPage();</script>
+</body>
+</html>
