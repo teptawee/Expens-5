@@ -1,6 +1,6 @@
 /**
  * ============================================
- * Transactions List Page
+ * Transactions List Page (Safe Version)
  * ============================================
  */
 
@@ -8,7 +8,6 @@ let CATS = [];
 let PAYS = [];
 let CURRENT_RANGE = 'all';
 
-// ========== INIT ==========
 document.addEventListener('DOMContentLoaded', () => {
   const now = new Date();
   const first = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -73,56 +72,72 @@ async function loadTransactions() {
 
     const data = await callAPI('getTransactionsList&' + params.toString());
 
-    CATS = data.categories;
-    PAYS = data.payments;
+    // ✅ SAFE: ตรวจสอบโครงสร้าง
+    if (!data || typeof data !== 'object') {
+      throw new Error('ข้อมูลที่ได้ไม่ถูกต้อง');
+    }
 
+    CATS = Array.isArray(data.categories) ? data.categories : [];
+    PAYS = Array.isArray(data.payments) ? data.payments : [];
+    const groups = Array.isArray(data.groups) ? data.groups : [];
+    const total = Number(data.total) || 0;
+    const count = Number(data.count) || 0;
+
+    // อัปเดต dropdown หมวดหมู่
     const sel = document.getElementById('filterCat');
     const cur = sel.value;
     sel.innerHTML = '<option value="all">🌈 ทุกหมวดหมู่</option>' +
       CATS.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
     sel.value = cur || 'all';
 
-    document.getElementById('sumTotal').textContent = '฿' + fmt(data.total);
-    document.getElementById('sumCount').textContent = data.count;
+    document.getElementById('sumTotal').textContent = '฿' + fmt(total);
+    document.getElementById('sumCount').textContent = count;
 
-    renderGroups(data.groups);
+    renderGroups(groups);
 
   } catch (err) {
-    el.innerHTML = `<div class="glass-card" style="text-align:center;padding:40px;color:#c62828">❌ ${err.message}</div>`;
+    console.error('Load transactions error:', err);
+    el.innerHTML = `<div class="glass-card" style="text-align:center;padding:40px;color:#c62828">
+      ❌ ${err.message}<br>
+      <small style="color:#7e7e94">กด F12 ดู Console เพื่อดูรายละเอียด</small>
+    </div>`;
   }
 }
 
 // ========== RENDER ==========
 function renderGroups(groups) {
   const el = document.getElementById('txList');
-  if (!groups.length) {
+  if (!Array.isArray(groups) || !groups.length) {
     el.innerHTML = '<div class="glass-card" style="text-align:center;padding:40px;color:#7e7e94">📭 ไม่พบรายการ</div>';
     return;
   }
 
-  el.innerHTML = groups.map(g => `
-    <div class="date-group">
-      <div class="date-header">
-        <div class="date-left">
-          <span class="date-icon">📅</span>
-          <span class="date-text">${formatThaiDate(g.date)}</span>
+  el.innerHTML = groups.map(g => {
+    const items = Array.isArray(g.items) ? g.items : [];
+    return `
+      <div class="date-group">
+        <div class="date-header">
+          <div class="date-left">
+            <span class="date-icon">📅</span>
+            <span class="date-text">${formatThaiDate(g.date)}</span>
+          </div>
+          <div class="date-total">฿${fmt(g.total)}</div>
         </div>
-        <div class="date-total">฿${fmt(g.total)}</div>
+        ${items.map(t => txItem(t)).join('')}
       </div>
-
-      ${g.items.map(t => txItem(t)).join('')}
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function txItem(t) {
+  if (!t) return '';
   return `
-    <div class="glass-card tx-item" data-id="${t.id}">
+    <div class="glass-card tx-item" data-id="${t.id || ''}">
       <div class="tx-bar" style="background:${getBarColor(t.categoryName)}"></div>
       <div class="tx-icon" style="background:${getIconBg(t.categoryName)}">${t.categoryIcon || '📌'}</div>
       <div class="tx-body">
         <div class="tx-line1">
-          <span class="tx-cat">${t.categoryName}</span>
+          <span class="tx-cat">${t.categoryName || '-'}</span>
           <span class="pay-chip">${t.payIcon || ''} ${t.payName || ''}</span>
         </div>
         <div class="tx-note">🍴 ${t.note || '-'}</div>
@@ -168,7 +183,9 @@ const THAI_MONTHS = [
 const THAI_DAYS = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
 
 function formatThaiDate(iso) {
+  if (!iso) return '-';
   const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d.getTime())) return iso;
   const day = THAI_DAYS[d.getDay()];
   const date = d.getDate();
   const month = THAI_MONTHS[d.getMonth()];
@@ -180,21 +197,26 @@ function formatThaiDate(iso) {
 async function openEdit(id) {
   try {
     const t = await callAPI('getTransactionById&id=' + encodeURIComponent(id));
+    if (!t) throw new Error('ไม่พบข้อมูล');
 
     document.getElementById('editId').value = t.id;
-    document.getElementById('editDate').value = t.dateStr;
-    document.getElementById('editAmount').value = t.amount;
+    document.getElementById('editDate').value = t.dateStr || '';
+    document.getElementById('editAmount').value = t.amount || '';
     document.getElementById('editNote').value = t.note || '';
 
     const cs = document.getElementById('editCat');
-    cs.innerHTML = CATS.map(c =>
-      `<option value="${c.id}" ${c.id === t.categoryId ? 'selected' : ''}>${c.icon} ${c.name}</option>`
-    ).join('');
+    cs.innerHTML = CATS.length
+      ? CATS.map(c =>
+          `<option value="${c.id}" ${c.id === t.categoryId ? 'selected' : ''}>${c.icon} ${c.name}</option>`
+        ).join('')
+      : '<option>ไม่มีหมวดหมู่</option>';
 
     const ps = document.getElementById('editPay');
-    ps.innerHTML = PAYS.map(p =>
-      `<option value="${p.id}" ${p.id === t.payId ? 'selected' : ''}>${p.icon} ${p.name}</option>`
-    ).join('');
+    ps.innerHTML = PAYS.length
+      ? PAYS.map(p =>
+          `<option value="${p.id}" ${p.id === t.payId ? 'selected' : ''}>${p.icon} ${p.name}</option>`
+        ).join('')
+      : '<option>ไม่มีประเภทชำระ</option>';
 
     document.getElementById('editModal').classList.remove('hidden');
   } catch (err) {
@@ -211,6 +233,8 @@ async function saveEdit() {
   const payId = document.getElementById('editPay').value;
   const catObj = CATS.find(c => c.id === catId);
   const payObj = PAYS.find(p => p.id === payId);
+
+  if (!catObj || !payObj) return alert('ข้อมูลหมวดหมู่หรือประเภทชำระไม่ถูกต้อง');
 
   const payload = {
     id: document.getElementById('editId').value,
