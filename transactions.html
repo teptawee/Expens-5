@@ -73,23 +73,71 @@
 
 </main>
 
+<!-- ===== Edit Modal (Enhanced) ===== -->
 <div id="editModal" class="modal-backdrop hidden">
-  <div class="glass-card modal-card">
-    <h2>✏️ แก้ไขรายการ</h2>
-    <input type="hidden" id="editId">
-    <label>วันที่</label>
-    <input type="date" id="editDate">
-    <label>หมวดหมู่</label>
-    <select id="editCat"></select>
-    <label>ประเภทการชำระ</label>
-    <select id="editPay"></select>
-    <label>จำนวนเงิน</label>
-    <input type="number" id="editAmount" step="0.01" min="0">
-    <label>หมายเหตุ</label>
-    <input type="text" id="editNote">
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeEdit()">ยกเลิก</button>
-      <button class="btn-primary" style="margin-top:0;width:auto;padding:12px 24px" onclick="saveEdit()">💾 บันทึก</button>
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-header-icon">✏️</div>
+      <div class="modal-header-text">
+        <h2>แก้ไขรายการ</h2>
+        <p>ปรับเปลี่ยนข้อมูลค่าใช้จ่าย</p>
+      </div>
+      <button class="modal-close" onclick="closeEdit()" aria-label="ปิด">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+
+      <div class="form-group">
+        <label>
+          <span class="label-icon">📅</span> วันที่
+        </label>
+        <input type="date" id="editDate">
+      </div>
+
+      <div class="form-group">
+        <label>
+          <span class="label-icon">🌈</span> หมวดหมู่
+        </label>
+        <div class="select-wrap">
+          <select id="editCat"></select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <span class="label-icon">💳</span> ประเภทการชำระ
+        </label>
+        <div class="select-wrap">
+          <select id="editPay"></select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <span class="label-icon">💰</span> จำนวนเงิน (บาท)
+        </label>
+        <div class="input-prefix-wrap">
+          <span class="input-prefix">฿</span>
+          <input type="number" id="editAmount" step="0.01" min="0" placeholder="0.00">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <span class="label-icon">📝</span> หมายเหตุ
+        </label>
+        <input type="text" id="editNote" placeholder="เช่น กาแฟลาเต้">
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeEdit()">
+        <span>✕</span> ยกเลิก
+      </button>
+      <button class="btn-save" onclick="saveEdit()">
+        <span>💾</span> บันทึก
+      </button>
     </div>
   </div>
 </div>
