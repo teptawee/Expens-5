@@ -218,11 +218,38 @@ async function openEdit(id) {
         ).join('')
       : '<option>ไม่มีประเภทชำระ</option>';
 
-    document.getElementById('editModal').classList.remove('hidden');
+    const modal = document.getElementById('editModal');
+    modal.classList.remove('hidden');
+    // lock scroll body ตอนเปิด modal
+    document.body.style.overflow = 'hidden';
   } catch (err) {
     alert('โหลดข้อมูลไม่ได้: ' + err.message);
   }
 }
+
+function closeEdit() {
+  const modal = document.getElementById('editModal');
+  modal.classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+// ปิด modal เมื่อคลิก backdrop
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('editModal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeEdit();
+    });
+  }
+});
+
+// ปิด modal เมื่อกด ESC
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('editModal');
+    if (modal && !modal.classList.contains('hidden')) closeEdit();
+  }
+});
 
 function closeEdit() {
   document.getElementById('editModal').classList.add('hidden');
