@@ -1,6 +1,6 @@
 /**
  * ============================================
- * Frontend Logic
+ * App.js — Logic กลาง
  * ============================================
  */
 
@@ -17,7 +17,7 @@ async function callAPI(action, data = null, method = 'GET') {
   let opts = { method: 'GET' };
 
   if (method === 'GET') {
-    url += `?action=${encodeURIComponent(action)}`;
+    url += `?action=${action}`;
   } else {
     opts = {
       method: 'POST',
@@ -36,14 +36,12 @@ async function callAPI(action, data = null, method = 'GET') {
 async function loadDashboard() {
   try {
     const d = await callAPI('getDashboard');
-    
-    // Summary
+
     document.getElementById('sumToday').textContent = '฿' + fmt(d.summary.today);
     document.getElementById('sumWeek').textContent = '฿' + fmt(d.summary.week);
     document.getElementById('sumMonth').textContent = '฿' + fmt(d.summary.month);
     document.getElementById('sumYear').textContent = '฿' + fmt(d.summary.year);
 
-    // Budget
     const b = d.monthBudgetInfo;
     document.getElementById('budgetTotal').textContent = '฿' + fmt(b.totalBudget);
     document.getElementById('budgetSpent').textContent = '฿' + fmt(b.spent);
@@ -51,21 +49,12 @@ async function loadDashboard() {
     const usedPercent = b.totalBudget > 0 ? (b.spent / b.totalBudget) * 100 : 0;
     document.getElementById('budgetBar').style.width = Math.min(100, usedPercent) + '%';
 
-    // Chart: Category
     renderCategoryChart(d.byCategory);
-    // Chart: Payment
     renderPaymentChart(d.byPayment);
-    // Chart: Daily
     renderDailyChart(d.dailyCompare);
-    // Chart: Weekly
     renderWeeklyChart(d.weeklyCompare);
-    // Chart: Monthly
     renderMonthlyChart(d.monthlyCompare);
-
-    // Progress per category
     renderCategoryProgress(d.byCategory);
-
-    // Recent
     renderRecent(d.recentTx);
 
   } catch (err) {
