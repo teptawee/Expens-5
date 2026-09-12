@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚙️ ตั้งค่า</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="glass-nav">
+  <div class="nav-brand">💰 Money Tracker</div>
+  <div class="nav-links">
+    <a href="index.html">📊 Dashboard</a>
+    <a href="add.html">➕ บันทึก</a>
+    <a href="settings.html" class="active">⚙️ ตั้งค่า</a>
+  </div>
+</nav>
+
+<main class="container">
+  <h1 class="page-title">⚙️ ตั้งค่าระบบ</h1>
+
+  <!-- งบประมาณรายเดือน -->
+  <section class="glass-card">
+    <h2>💼 งบประมาณรายเดือน</h2>
+    <div class="form-row">
+      <input type="month" id="budgetMonth">
+      <input type="number" id="budgetAmount" placeholder="งบประมาณรวม (บาท)">
+      <button class="btn-primary" onclick="saveBudget()">💾 บันทึก</button>
+    </div>
+  </section>
+
+  <!-- หมวดหมู่ -->
+  <section class="glass-card">
+    <h2>📂 หมวดหมู่ค่าใช้จ่าย</h2>
+    <div class="form-row">
+      <input type="text" id="catName" placeholder="ชื่อหมวดหมู่">
+      <input type="text" id="catIcon" placeholder="ไอคอน (emoji)" maxlength="4">
+      <input type="number" id="catBudget" placeholder="วงเงิน/เดือน">
+      <button class="btn-primary" onclick="addCat()">➕ เพิ่ม</button>
+    </div>
+    <div id="catList" class="list-area"></div>
+  </section>
+
+  <!-- ประเภทชำระ -->
+  <section class="glass-card">
+    <h2>💳 ประเภทการชำระเงิน</h2>
+    <div class="form-row">
+      <input type="text" id="payName" placeholder="ชื่อประเภท">
+      <input type="text" id="payIcon" placeholder="ไอคอน" maxlength="4">
+      <button class="btn-primary" onclick="addPay()">➕ เพิ่ม</button>
+    </div>
+    <div id="payList" class="list-area"></div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+<script>initSettingsPage();</script>
+</body>
+</html>
