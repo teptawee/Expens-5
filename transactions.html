@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📋 รายการทั้งหมด</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="glass-nav">
+  <div class="nav-brand">💰 Money Tracker</div>
+  <div class="nav-links">
+    <a href="index.html">📊 Dashboard</a>
+    <a href="add.html">➕ บันทึก</a>
+    <a href="transactions.html" class="active">📋 รายการ</a>
+    <a href="settings.html">⚙️ ตั้งค่า</a>
+  </div>
+</nav>
+
+<main class="container">
+
+  <section class="glass-card title-section">
+    <div class="title-row">
+      <div class="title-icon">📋</div>
+      <h1 class="title-text">รายการทั้งหมด</h1>
+    </div>
+    <div class="dashed-line"></div>
+
+    <div class="quick-ranges">
+      <button class="chip" data-range="7">📅 7 วันล่าสุด</button>
+      <button class="chip" data-range="30">📅 30 วัน</button>
+      <button class="chip active" data-range="all">📋 ทั้งหมด</button>
+    </div>
+
+    <div class="filter-card">
+      <div class="filter-row">
+        <div class="input-wrap">
+          <span class="input-icon">📅</span>
+          <input type="date" id="filterFrom">
+        </div>
+        <div class="input-wrap">
+          <span class="input-icon">📅</span>
+          <input type="date" id="filterTo">
+        </div>
+        <div class="input-wrap">
+          <span class="input-icon">🌈</span>
+          <select id="filterCat">
+            <option value="all">ทุกหมวดหมู่</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-search" onclick="loadTransactions()">
+        🔍 ค้นหา
+      </button>
+    </div>
+  </section>
+
+  <section class="glass-card summary-bar">
+    <div>
+      <span class="summary-label">รวมทั้งหมด</span>
+      <span class="summary-value" id="sumTotal">฿0.00</span>
+    </div>
+    <div>
+      <span class="summary-label">จำนวน</span>
+      <span class="summary-value" id="sumCount">0</span>
+      <span class="summary-unit">รายการ</span>
+    </div>
+  </section>
+
+  <section id="txList"></section>
+
+</main>
+
+<!-- ===== Edit Modal ===== -->
+<div id="editModal" class="modal-backdrop hidden">
+  <div class="glass-card modal-card">
+    <h2>✏️ แก้ไขรายการ</h2>
+    <input type="hidden" id="editId">
+    <label>วันที่</label>
+    <input type="date" id="editDate">
+    <label>หมวดหมู่</label>
+    <select id="editCat"></select>
+    <label>ประเภทการชำระ</label>
+    <select id="editPay"></select>
+    <label>จำนวนเงิน</label>
+    <input type="number" id="editAmount" step="0.01" min="0">
+    <label>หมายเหตุ</label>
+    <input type="text" id="editNote">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeEdit()">ยกเลิก</button>
+      <button class="btn-primary" style="margin-top:0;width:auto;padding:12px 24px" onclick="saveEdit()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script src="transactions.js"></script>
+</body>
+</html>
