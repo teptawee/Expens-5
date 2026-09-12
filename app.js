@@ -1,11 +1,11 @@
 /**
  * ============================================
- * App.js — Logic กลาง (Final)
+ * App.js — Logic กลาง (Final v3)
  * ============================================
  */
 
 // 🔧 ตั้งค่า API URL ของคุณตรงนี้
-const API_URL = "https://script.google.com/macros/s/xxxxxxxxxxxxx/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycby-oHhsH3-Bt26DlaBWe3eosyKaPs2yS13IVbEgikb65fAf_Hia6MlINSsj27cZDcI4/exec";
 
 // ==================== UTILS ====================
 const fmt = n => new Intl.NumberFormat('th-TH', {
@@ -65,7 +65,6 @@ async function loadDashboard() {
     const usedPercent = b.totalBudget > 0 ? (b.spent / b.totalBudget) * 100 : 0;
     document.getElementById('budgetBar').style.width = Math.min(100, usedPercent) + '%';
 
-    // destroy chart เก่า + render ใหม่
     destroyAllCharts();
     renderCategoryChart(Array.isArray(d.byCategory) ? d.byCategory : []);
     renderPaymentChart(Array.isArray(d.byPayment) ? d.byPayment : []);
@@ -219,7 +218,7 @@ function renderRecent(list) {
 
 /**
  * ============================================
- * Category Progress Cards (Enhanced)
+ * Category Progress Cards (v3 — Matching Design)
  * ============================================
  */
 
@@ -235,23 +234,22 @@ const EMOJI_LIST = [
 ];
 
 const CAT_STYLE = {
-  'ค่าอาหาร':        { bg: 'linear-gradient(135deg,#ffcc80,#ffb74d)', accent: '#ffb74d' },
-  'ค่ากาแฟ':         { bg: 'linear-gradient(135deg,#b39ddb,#9575cd)', accent: '#9575cd' },
-  'ค่าเครื่องดื่ม':   { bg: 'linear-gradient(135deg,#80cbc4,#4db6ac)', accent: '#4db6ac' },
-  'ค่าหวย':          { bg: 'linear-gradient(135deg,#ef9a9a,#e57373)', accent: '#e57373' },
-  'ค่าช้อปปิ้ง':      { bg: 'linear-gradient(135deg,#f8bbd0,#f48fb1)', accent: '#f48fb1' },
-  'ค่ายานพาหนะ':      { bg: 'linear-gradient(135deg,#90caf9,#64b5f6)', accent: '#64b5f6' },
-  'ค่าน้ำมันรถ':      { bg: 'linear-gradient(135deg,#80deea,#4dd0e1)', accent: '#4dd0e1' },
-  'ค่ายารักษาโรค':    { bg: 'linear-gradient(135deg,#a5d6a7,#81c784)', accent: '#81c784' },
-  'ค่าของใช้ส่วนตัว': { bg: 'linear-gradient(135deg,#ce93d8,#ba68c8)', accent: '#ba68c8' },
-  'ค่าของใช้จำเป็น':  { bg: 'linear-gradient(135deg,#81d4fa,#4fc3f7)', accent: '#4fc3f7' },
-  'ค่าอื่นๆ':         { bg: 'linear-gradient(135deg,#bcaaa4,#a1887f)', accent: '#a1887f' }
+  'ค่าอาหาร':        { bg: 'linear-gradient(135deg, #fff3e0, #ffe0b2)' },   // ครีม-ส้มอ่อน
+  'ค่ากาแฟ':         { bg: 'linear-gradient(135deg, #f3e5f5, #e1bee7)' },   // ม่วงอ่อน
+  'ค่าเครื่องดื่ม':   { bg: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' },   // ชมพูอ่อน
+  'ค่าหวย':          { bg: 'linear-gradient(135deg, #fff8e1, #ffecb3)' },   // เหลืองอ่อน
+  'ค่าช้อปปิ้ง':      { bg: 'linear-gradient(135deg, #f3e5f5, #ce93d8)' },   // ม่วงชมพู
+  'ค่ายานพาหนะ':      { bg: 'linear-gradient(135deg, #e3f2fd, #bbdefb)' },   // ฟ้าอ่อน
+  'ค่าน้ำมันรถ':      { bg: 'linear-gradient(135deg, #e0f7fa, #b2ebf2)' },   // ฟ้าเขียวมิ้นต์
+  'ค่ายารักษาโรค':    { bg: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)' },   // เขียวอ่อน
+  'ค่าของใช้ส่วนตัว': { bg: 'linear-gradient(135deg, #fce4ec, #f8bbd0)' },   // ชมพูพีช
+  'ค่าของใช้จำเป็น':  { bg: 'linear-gradient(135deg, #e1f5fe, #b3e5fc)' },   // ฟ้า
+  'ค่าอื่นๆ':         { bg: 'linear-gradient(135deg, #efebe9, #d7ccc8)' }    // น้ำตาลอ่อน
 };
 
 function getCatStyle(name) {
   return CAT_STYLE[name] || {
-    bg: 'linear-gradient(135deg,#e0e0e0,#bdbdbd)',
-    accent: '#bdbdbd'
+    bg: 'linear-gradient(135deg, #f5f5f5, #e0e0e0)'
   };
 }
 
@@ -276,23 +274,36 @@ function renderCategoryProgress(cats) {
 function catCardHTML(c) {
   const style = getCatStyle(c.name);
   const percent = Number(c.percent) || 0;
-  const barColor = percent > 50 ? '#66bb6a' : percent > 20 ? '#ffb74d' : '#ef5350';
-  const percentColor = percent > 50 ? '#2e7d32' : percent > 20 ? '#e65100' : '#c62828';
+
+  // สีตามค่า percent
+  let barColor, percentColor;
+  if (percent >= 60) {
+    barColor = '#81c784';      // เขียวอ่อน
+    percentColor = '#2e7d32';  // เขียวเข้ม
+  } else if (percent >= 40) {
+    barColor = '#ffd54f';      // เหลืองอ่อน
+    percentColor = '#e65100';  // ส้ม
+  } else {
+    barColor = '#ffb74d';      // ส้มอ่อน
+    percentColor = '#e65100';  // ส้มเข้ม
+  }
 
   return `
-    <div class="cat-card" style="--cat-accent:${style.accent}40">
+    <div class="cat-card">
       <div class="cat-card-header">
         <div class="cat-card-icon" style="background:${style.bg}">${c.icon || '📌'}</div>
         <div class="cat-card-info">
           <div class="name">${c.name || '-'}</div>
           <div class="sub">คงเหลือ ${percent}%</div>
         </div>
-        <div class="cat-card-percent" style="color:${percentColor}">${percent.toFixed(1)}%</div>
+        <div class="cat-card-percent" style="color:${percentColor}">
+          ${percent.toFixed(1)}%
+        </div>
       </div>
 
       <div class="cat-stats">
         <div class="cat-stat spent">
-          <div class="stat-label">🟢 ใช้ไป</div>
+          <div class="stat-label">💎 ใช้ไป</div>
           <div class="stat-value">฿${fmt(c.spent)}</div>
         </div>
         <div class="cat-stat budget">
@@ -306,14 +317,14 @@ function catCardHTML(c) {
       </div>
 
       <div class="cat-card-bar">
-        <div class="cat-card-bar-fill" style="width:${percent}%;background:${barColor}"></div>
+        <div class="cat-card-bar-fill" style="width:${Math.min(100, percent)}%;background:${barColor}"></div>
       </div>
 
-      <div style="display:flex;gap:6px;margin-top:12px;justify-content:flex-end">
+      <div class="cat-card-actions">
         <button class="cat-action-btn edit" onclick="openCategoryModal('edit','${c.id}')" title="แก้ไข">✏️</button>
-        <button class="cat-action-btn add" onclick="openCategoryModal('add')" title="เพิ่มหมวดใหม่">➕</button>
+        <button class="cat-action-btn add" onclick="openCategoryModal('add')" title="เพิ่ม">➕</button>
         <button class="cat-action-btn list" onclick="openCatTxModal('${c.id}')" title="ดูรายการ">📋</button>
-        <button class="cat-action-btn" onclick="askDeleteCat('${c.id}','${c.name}')" title="ลบ" style="background:linear-gradient(135deg,#ffcdd2,#ef9a9a);border-color:rgba(239,154,154,0.6)">🗑️</button>
+        <button class="cat-action-btn delete" onclick="askDeleteCat('${c.id}','${c.name}')" title="ลบ">🗑️</button>
       </div>
     </div>
   `;
@@ -324,7 +335,6 @@ function openCategoryModal(mode, id) {
   const modal = document.getElementById('categoryModal');
   const emojiPicker = document.getElementById('emojiPicker');
 
-  // สร้าง emoji picker ถ้ายังไม่มี
   if (!emojiPicker.children.length) {
     emojiPicker.innerHTML = EMOJI_LIST.map(e =>
       `<button type="button" class="emoji-btn" data-emoji="${e}">${e}</button>`
