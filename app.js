@@ -26,6 +26,15 @@ async function callAPI(action, data = null, method = 'GET') {
     };
   }
 
+  console.log('🔵 API Call:', url, opts);
+  const res = await fetch(url, opts);
+  const json = await res.json();
+  console.log('🟢 API Response:', json);
+  
+  if (!json.ok) throw new Error(json.error || 'API Error');
+  return json.data;
+}
+
   const res = await fetch(url, opts);
   const json = await res.json();
   if (!json.ok) throw new Error(json.error || 'API Error');
