@@ -22,6 +22,7 @@
 <main class="container">
   <h1 class="page-title">📊 ภาพรวมการเงิน</h1>
 
+  <!-- ===== Summary Cards ===== -->
   <section class="summary-grid">
     <div class="glass-card stat-card">
       <div class="stat-icon">☀️</div>
@@ -45,6 +46,7 @@
     </div>
   </section>
 
+  <!-- ===== Budget ===== -->
   <section class="glass-card" id="budgetCard">
     <h2>💼 งบประมาณเดือนนี้</h2>
     <div class="budget-row">
@@ -57,6 +59,7 @@
     </div>
   </section>
 
+  <!-- ===== Chart 2 วง ===== -->
   <section class="chart-grid">
     <div class="glass-card">
       <h2>🍩 ค่าใช้จ่ายตามหมวดหมู่</h2>
@@ -68,11 +71,13 @@
     </div>
   </section>
 
+  <!-- ===== Daily Chart ===== -->
   <section class="glass-card">
     <h2>📈 เปรียบเทียบรายวัน (7 วันล่าสุด)</h2>
     <canvas id="chartDaily" height="120"></canvas>
   </section>
 
+  <!-- ===== Weekly + Monthly ===== -->
   <section class="chart-grid">
     <div class="glass-card">
       <h2>📊 เปรียบเทียบรายสัปดาห์</h2>
@@ -84,16 +89,112 @@
     </div>
   </section>
 
+  <!-- ===== Category Progress (Enhanced) ===== -->
   <section class="glass-card">
-    <h2>🎯 สถานะเงินคงเหลือแต่ละหมวด</h2>
-    <div id="categoryProgress"></div>
+    <div class="section-header">
+      <h2>🎯 สถานะเงินคงเหลือแต่ละหมวด</h2>
+      <button class="btn-add-cat" onclick="openCategoryModal('add')">
+        ➕ เพิ่มหมวดหมู่
+      </button>
+    </div>
+    <div id="categoryProgress" class="cat-grid"></div>
   </section>
 
+  <!-- ===== Recent ===== -->
   <section class="glass-card">
     <h2>🕒 รายการล่าสุด</h2>
     <div id="recentList"></div>
   </section>
 </main>
+
+<!-- ===== Category Edit/Add Modal ===== -->
+<div id="categoryModal" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-header-icon" id="catModalIcon">✏️</div>
+      <div class="modal-header-text">
+        <h2 id="catModalTitle">แก้ไขหมวดหมู่</h2>
+        <p>ปรับชื่อ ไอคอน และวงเงิน</p>
+      </div>
+      <button class="modal-close" onclick="closeCategoryModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <input type="hidden" id="catModalId">
+
+      <div class="form-group">
+        <label><span class="label-icon">🏷️</span> ชื่อหมวดหมู่</label>
+        <input type="text" id="catModalName" placeholder="เช่น ค่ากาแฟ">
+      </div>
+
+      <div class="form-group">
+        <label><span class="label-icon">😀</span> ไอคอน (emoji)</label>
+        <div class="emoji-picker" id="emojiPicker"></div>
+        <input type="text" id="catModalIconInput" placeholder="หรือพิมพ์เอง..." maxlength="4" style="margin-top:8px">
+      </div>
+
+      <div class="form-group">
+        <label><span class="label-icon">💰</span> วงเงิน/เดือน (บาท)</label>
+        <div class="input-prefix-wrap">
+          <span class="input-prefix">฿</span>
+          <input type="number" id="catModalBudget" step="1" min="0" placeholder="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeCategoryModal()">
+        <span>✕</span> ยกเลิก
+      </button>
+      <button class="btn-save" onclick="saveCategoryModal()">
+        <span>💾</span> บันทึก
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Confirm Delete Modal ===== -->
+<div id="confirmModal" class="modal-backdrop hidden">
+  <div class="modal-card confirm-card">
+    <div class="confirm-icon-wrap">
+      <div class="confirm-icon">🗑️</div>
+    </div>
+    <h2 class="confirm-title">ยืนยันการลบ?</h2>
+    <p class="confirm-text" id="confirmText">หมวดหมู่นี้จะถูกซ่อนจากรายการ</p>
+    <div class="modal-footer confirm-footer">
+      <button class="btn-cancel" onclick="closeConfirm()">
+        <span>✕</span> ยกเลิก
+      </button>
+      <button class="btn-danger" onclick="confirmDelete()">
+        <span>🗑️</span> ลบเลย
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Category Transactions Modal ===== -->
+<div id="catTxModal" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-header-icon" id="catTxIcon">📋</div>
+      <div class="modal-header-text">
+        <h2 id="catTxTitle">รายการในหมวด</h2>
+        <p id="catTxSubtitle">-</p>
+      </div>
+      <button class="modal-close" onclick="closeCatTxModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div id="catTxList" class="cat-tx-list"></div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeCatTxModal()" style="flex:1">
+        <span>✕</span> ปิด
+      </button>
+    </div>
+  </div>
+</div>
 
 <script src="app.js"></script>
 <script>loadDashboard();</script>
