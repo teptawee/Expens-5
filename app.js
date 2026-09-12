@@ -46,28 +46,34 @@ async function loadDashboard() {
   try {
     const d = await callAPI('getDashboard');
 
-    document.getElementById('sumToday').textContent = '฿' + fmt(d.summary.today);
-    document.getElementById('sumWeek').textContent = '฿' + fmt(d.summary.week);
-    document.getElementById('sumMonth').textContent = '฿' + fmt(d.summary.month);
-    document.getElementById('sumYear').textContent = '฿' + fmt(d.summary.year);
+    // ✅ SAFE: ตรวจสอบ
+    if (!d || typeof d !== 'object') throw new Error('Dashboard data ไม่ถูกต้อง');
 
-    const b = d.monthBudgetInfo;
+    const summary = d.summary || { today:0, week:0, month:0, year:0 };
+    const monthBudgetInfo = d.monthBudgetInfo || { totalBudget:0, spent:0, remain:0 };
+
+    document.getElementById('sumToday').textContent = '฿' + fmt(summary.today);
+    document.getElementById('sumWeek').textContent = '฿' + fmt(summary.week);
+    document.getElementById('sumMonth').textContent = '฿' + fmt(summary.month);
+    document.getElementById('sumYear').textContent = '฿' + fmt(summary.year);
+
+    const b = monthBudgetInfo;
     document.getElementById('budgetTotal').textContent = '฿' + fmt(b.totalBudget);
     document.getElementById('budgetSpent').textContent = '฿' + fmt(b.spent);
     document.getElementById('budgetRemain').textContent = '฿' + fmt(b.remain);
     const usedPercent = b.totalBudget > 0 ? (b.spent / b.totalBudget) * 100 : 0;
     document.getElementById('budgetBar').style.width = Math.min(100, usedPercent) + '%';
 
-    renderCategoryChart(d.byCategory);
-    renderPaymentChart(d.byPayment);
-    renderDailyChart(d.dailyCompare);
-    renderWeeklyChart(d.weeklyCompare);
-    renderMonthlyChart(d.monthlyCompare);
-    renderCategoryProgress(d.byCategory);
-    renderRecent(d.recentTx);
+    renderCategoryChart(Array.isArray(d.byCategory) ? d.byCategory : []);
+    renderPaymentChart(Array.isArray(d.byPayment) ? d.byPayment : []);
+    renderDailyChart(Array.isArray(d.dailyCompare) ? d.dailyCompare : []);
+    renderWeeklyChart(Array.isArray(d.weeklyCompare) ? d.weeklyCompare : []);
+    renderMonthlyChart(Array.isArray(d.monthlyCompare) ? d.monthlyCompare : []);
+    renderCategoryProgress(Array.isArray(d.byCategory) ? d.byCategory : []);
+    renderRecent(Array.isArray(d.recentTx) ? d.recentTx : []);
 
   } catch (err) {
-    console.error(err);
+    console.error('Dashboard error:', err);
     alert('เกิดข้อผิดพลาด: ' + err.message);
   }
 }
@@ -226,36 +232,80 @@ let selectedCat = null;
 let selectedPay = null;
 
 async function initAddPage() {
-  const cats = (await callAPI('getCategories')).filter(c => c.active !== false);
-  const pays = (await callAPI('getPayments')).filter(p => p.active !== false);
+  try {
+    const catData = await callAPI('getCategories');
+    const payData = await callAPI('getPayments');
 
-  document.getElementById('categoryPicker').innerHTML = cats.map(c => `
-    <div class="icon-option" data-id="${c.id}" data-name="${c.name}" data-icon="${c.icon}">
-      <span class="emoji">${c.icon}</span>${c.name}
-    </div>
-  `).join('');
+    // ✅ SAFE
+    const cats = (Array.isArray(catData) ? catData : []).filter(c => c.active !== false);
+    const pays = (Array.isArray(payData) ? payData : []).filter(p => p.active !== false);
 
-  document.getElementById('paymentPicker').innerHTML = pays.map(p => `
-    <div class="icon-option" data-id="${p.id}" data-name="${p.name}" data-icon="${p.icon}">
-      <span class="emoji">${p.icon}</span>${p.name}
-    </div>
-  `).join('');
+    document.getElementById('categoryPicker').innerHTML = cats.length
+      ? cats.map(c => `
+          <div class="icon-option" data-id="${c.id}" data-name="${c.name}" data-icon="${c.icon}">
+            <span class="emoji">${c.icon}</span>${c.name}
+          </div>
+        `).join('')
+      : '<p style="color:#7e7e94">ไม่พบหมวดหมู่</p>';
 
-  document.querySelectorAll('#categoryPicker .icon-option').forEach(el => {
-    el.onclick = () => {
-      document.querySelectorAll('#categoryPicker .icon-option').forEach(x => x.classList.remove('selected'));
-      el.classList.add('selected');
-      selectedCat = { id: el.dataset.id, name: el.dataset.name, icon: el.dataset.icon };
+    document.getElementById('paymentPicker').innerHTML = pays.length
+      ? pays.map(p => `
+          <div class="icon-option" data-id="${p.id}" data-name="${p.name}" data-icon="${p.icon}">
+            <span class="emoji">${p.icon}</span>${p.name}
+          </div>
+        `).join('')
+      : '<p style="color:#7e7e94">ไม่พบประเภทชำระ</p>';
+
+    document.querySelectorAll('#categoryPicker .icon-option').forEach(el => {
+      el.onclick = () => {
+        document.querySelectorAll('#categoryPicker .icon-option').forEach(x => x.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedCat = { id: el.dataset.id, name: el.dataset.name, icon: el.dataset.icon };
+      };
+    });
+
+    document.querySelectorAll('#paymentPicker .icon-option').forEach(el => {
+      el.onclick = () => {
+        document.querySelectorAll('#paymentPicker .icon-option').forEach(x => x.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedPay = { id: el.dataset.id, name: el.dataset.name, icon: el.dataset.icon };
+      };
+    });
+
+    document.getElementById('txForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const res = document.getElementById('result');
+      if (!selectedCat) return showResult(res, 'กรุณาเลือกหมวดหมู่', false);
+      if (!selectedPay) return showResult(res, 'กรุณาเลือกประเภทการชำระ', false);
+      const amount = parseFloat(document.getElementById('amount').value);
+      if (!amount || amount <= 0) return showResult(res, 'กรุณากรอกจำนวนเงิน', false);
+
+      try {
+        await callAPI('addTransaction', {
+          categoryId: selectedCat.id,
+          categoryName: selectedCat.name,
+          categoryIcon: selectedCat.icon,
+          payId: selectedPay.id,
+          payName: selectedPay.name,
+          payIcon: selectedPay.icon,
+          amount,
+          note: document.getElementById('note').value
+        }, 'POST');
+
+        showResult(res, '✅ บันทึกสำเร็จ!', true);
+        document.getElementById('amount').value = '';
+        document.getElementById('note').value = '';
+        setTimeout(() => location.href = 'index.html', 1200);
+      } catch (err) {
+        showResult(res, '❌ ' + err.message, false);
+      }
     };
-  });
 
-  document.querySelectorAll('#paymentPicker .icon-option').forEach(el => {
-    el.onclick = () => {
-      document.querySelectorAll('#paymentPicker .icon-option').forEach(x => x.classList.remove('selected'));
-      el.classList.add('selected');
-      selectedPay = { id: el.dataset.id, name: el.dataset.name, icon: el.dataset.icon };
-    };
-  });
+  } catch (err) {
+    console.error('Init add page error:', err);
+    alert('โหลดข้อมูลไม่ได้: ' + err.message);
+  }
+}
 
   document.getElementById('txForm').onsubmit = async (e) => {
     e.preventDefault();
@@ -300,36 +350,49 @@ async function initSettingsPage() {
 }
 
 async function loadSettings() {
-  const cats = await callAPI('getCategories');
-  const pays = await callAPI('getPayments');
+  try {
+    const catData = await callAPI('getCategories');
+    const payData = await callAPI('getPayments');
 
-  document.getElementById('catList').innerHTML = cats.map(c => `
-    <div class="list-item">
-      <div class="left">
-        <span class="icon">${c.icon}</span>
-        <span class="${c.active === false ? 'inactive' : ''}">
-          ${c.name} · ฿${fmt(c.budget)}
-        </span>
-      </div>
-      <div>
-        <button class="btn-mini" onclick="editCat('${c.id}','${c.name}','${c.icon}',${c.budget})">✏️</button>
-        <button class="btn-mini danger" onclick="delCat('${c.id}')">🗑️</button>
-      </div>
-    </div>
-  `).join('');
+    const cats = Array.isArray(catData) ? catData : [];
+    const pays = Array.isArray(payData) ? payData : [];
 
-  document.getElementById('payList').innerHTML = pays.map(p => `
-    <div class="list-item">
-      <div class="left">
-        <span class="icon">${p.icon}</span>
-        <span class="${p.active === false ? 'inactive' : ''}">${p.name}</span>
-      </div>
-      <div>
-        <button class="btn-mini" onclick="editPay('${p.id}','${p.name}','${p.icon}')">✏️</button>
-        <button class="btn-mini danger" onclick="delPay('${p.id}')">🗑️</button>
-      </div>
-    </div>
-  `).join('');
+    document.getElementById('catList').innerHTML = cats.length
+      ? cats.map(c => `
+          <div class="list-item">
+            <div class="left">
+              <span class="icon">${c.icon}</span>
+              <span class="${c.active === false ? 'inactive' : ''}">
+                ${c.name} · ฿${fmt(c.budget)}
+              </span>
+            </div>
+            <div>
+              <button class="btn-mini" onclick="editCat('${c.id}','${c.name}','${c.icon}',${c.budget})">✏️</button>
+              <button class="btn-mini danger" onclick="delCat('${c.id}')">🗑️</button>
+            </div>
+          </div>
+        `).join('')
+      : '<p style="color:#7e7e94">ไม่มีหมวดหมู่</p>';
+
+    document.getElementById('payList').innerHTML = pays.length
+      ? pays.map(p => `
+          <div class="list-item">
+            <div class="left">
+              <span class="icon">${p.icon}</span>
+              <span class="${p.active === false ? 'inactive' : ''}">${p.name}</span>
+            </div>
+            <div>
+              <button class="btn-mini" onclick="editPay('${p.id}','${p.name}','${p.icon}')">✏️</button>
+              <button class="btn-mini danger" onclick="delPay('${p.id}')">🗑️</button>
+            </div>
+          </div>
+        `).join('')
+      : '<p style="color:#7e7e94">ไม่มีประเภทชำระ</p>';
+
+  } catch (err) {
+    console.error('Load settings error:', err);
+    alert('โหลดข้อมูลไม่ได้: ' + err.message);
+  }
 }
 
 async function addCat() {
