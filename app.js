@@ -5,7 +5,7 @@
  */
 
 // 🔧 ตั้งค่า API URL ของคุณตรงนี้
-const API_URL = "https://script.google.com/macros/s/AKfycbyylMb0W0WOwrh4SASFCwEYGc3DdUj4PMSMeECAWAVwOs4wliHtbk5KRHODqXYI4B8PwQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycby-oHhsH3-Bt26DlaBWe3eosyKaPs2yS13IVbEgikb65fAf_Hia6MlINSsj27cZDcI4/exec";
 
 // ==================== UTILS ====================
 const fmt = n => new Intl.NumberFormat('th-TH', {
